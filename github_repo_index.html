@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Laudo Caracterizador de Deficiência — BR MED</title>
+
+<!--
+  ════════════════════════════════════════════════════════════════
+  LAUDO CARACTERIZADOR DE DEFICIÊNCIA PcD — v3.0
+  Desenvolvido para BR MED Saúde Corporativa
+  ────────────────────────────────────────────────────────────────
+  ARQUITETURA:
+  • CSS SCREEN  : interface web moderna (linhas 1–~350 do <link rel="stylesheet" href="css/style.css">
+
+
+
+<style id="patch-v34-final-hide">
+@media print{
+  body > .topbar,
+  body > .mod-modal-overlay,
+  body > .aviso-print,
+  body > .page-wrap,
+  body > script{display:none!important;visibility:hidden!important;}
+  body > #print-root{display:block!important;visibility:visible!important;width:176mm!important;max-width:176mm!important;margin:0 auto!important;}
+  body > #print-root *{visibility:visible!important;}
+}
+</style>
+
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="print-root" aria-hidden="true"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TOPBAR — Sistema BR MED + Seletor Multiempresa
+═══════════════════════════════════════════════════════════════ -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <img class="topbar-logo-img"
+      src="https://grupobrmed.com.br/wp-content/uploads/2024/02/nova-marca-horizontal-1.png"
+      alt="BR MED"
+      onerror="this.style.display='none';document.getElementById('logo-fb').style.display='flex'">
+    <div id="logo-fb" style="display:none;flex-direction:column;gap:2px">
+      <div class="topbar-logo-text">
+        <span class="t1">BR MED</span>
+        <span class="t2">Saúde Corporativa</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Seletor de empresa -->
+
+
+  <div class="topbar-actions">
+    <select class="modelo-select no-print-el" id="modelo-select" onchange="carregarModelo(this.value)" title="Selecionar modelo">
+      <option value="">📋 Modelos salvos</option>
+    </select>
+    <button class="btn btn-modelos no-print-el" onclick="abrirModalModelos()" title="Gerenciar modelos">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>
+      Modelos
+    </button>
+    <button class="btn btn-clear" onclick="if(confirm('Tem certeza que deseja limpar todos os campos? Esta ação não pode ser desfeita.'))limparCampos()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      Limpar
+    </button>
+    <button class="btn btn-print" onclick="acaoComValidacao('print')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Imprimir
+    </button>
+    
+  </div>
+</div>
+
+
+
+<!-- MODAL DE MODELOS -->
+<div class="mod-modal-overlay" id="mod-modal" onclick="if(event.target===this)fecharModalModelos()">
+  <div class="mod-modal">
+    <div class="mod-head">
+      <h2>📋 Gerenciar Modelos</h2>
+      <button onclick="fecharModalModelos()">&#xD7;</button>
+    </div>
+    <div class="mod-body">
+      <div class="mod-section-title">Modelos salvos</div>
+      <div id="mod-lista"></div>
+      <div class="mod-section-title" style="margin-top:14px">Salvar modelo atual</div>
+      <div class="mod-field">
+        <label>Nome do modelo *</label>
+        <input type="text" id="mod-nome-input" placeholder="Ex.: Deficiência Física – Paraplegia">
+      </div>
+    </div>
+    <div class="mod-foot" style="flex-direction:column;gap:10px;align-items:stretch">
+      <div style="background:#f0f8ff;border:1px solid #b8d9f0;border-radius:3px;padding:8px 10px;font-size:11px;color:#1a4f72;line-height:1.5">
+        <strong>Baixar modelos:</strong> salva um arquivo no seu computador com todos os seus modelos. Voce pode mandar esse arquivo para uma colega, que podera carregar no computador dela.<br>
+        <strong>Carregar modelos:</strong> abre um arquivo de modelos que voce recebeu ou salvou anteriormente e adiciona aos seus modelos atuais.
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="mod-btn-cancel" onclick="baixarModelos()" style="background:#27ae60;color:#fff;border-color:#27ae60">&#8659; Baixar meus modelos</button>
+        <label class="mod-btn-cancel" style="cursor:pointer;background:#e67e22;color:#fff;border-color:#e67e22;display:inline-flex;align-items:center">
+          &#8657; Carregar modelos de arquivo
+          <input type="file" accept=".json" style="display:none" onchange="carregarModelosArquivo(this)">
+        </label>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="mod-btn-cancel" onclick="fecharModalModelos()">Fechar</button>
+        <button class="mod-btn-save" onclick="salvarModelo()">Salvar modelo atual</button>
+      </div>
+    </div></div>
+  </div>
+</div>
+<div class="aviso-print" id="aviso-chrome"><strong>&#9888; Chrome:</strong> Na janela de impressão &rarr; "Mais configura&ccedil;&otilde;es" &rarr; desmarque <strong>"Cabe&ccedil;alhos e rodap&eacute;s"</strong> para evitar texto e n&uacute;mero de p&aacute;gina na folha.</div>
+<!-- Aviso institucional — visível APENAS na impressão -->
+
+<div class="page-wrap">
+
+<!-- Painel de Validação -->
+<div class="val-panel no-print-el" id="valPanel">
+  <div class="val-title">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Corrija os campos obrigatórios antes de continuar:
+  </div>
+  <ul class="val-list" id="valList"></ul>
+</div>
+
+<div class="sys-section-title no-print-el">Laudo Caracterizador de Deficiência — PcD</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DOCUMENTO — PÁGINA 1
+═══════════════════════════════════════════════════════════════ -->
+<div class="doc-card" id="doc-p1">
+
+  <!-- CABEÇALHO OFICIAL — com suporte tri-logo (multiempresa) -->
+  <div class="doc-header" id="doc-header-main">
+    <!-- Logo BR MED (esquerda) -->
+    <div class="doc-header-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 52" id="logo-brmed-svg" style="height:36px;width:auto;display:block">
+  <text x="1" y="34" font-family="Arial Black,Arial,Helvetica,sans-serif" font-size="36" font-weight="900" fill="#000000" letter-spacing="-1">BR MED</text>
+  <rect x="1" y="38" width="218" height="1.2" fill="#000000" opacity="0.25"/>
+  <text x="2" y="49" font-family="Arial,Helvetica,sans-serif" font-size="8.5" font-weight="400" fill="#444444" letter-spacing="3.5">SAÚDE CORPORATIVA</text>
+</svg>
+      <span class="logo-sub" style="display:none">Saúde Corporativa</span>
+    </div>
+
+    <!-- Título central -->
+    <div class="doc-header-title">
+      <h1>LAUDO CARACTERIZADOR DE DEFICIÊNCIA<br>
+        <span style="font-size:10px;font-weight:400;color:#555">
+          De acordo com o Decreto nº 3.298/99 · Lei nº 13.146/2015 · IN 02/MTE/2021 · OT SIT nº 16/2025
+        </span><br>
+        <span class="p1-pagina-indicator" id="p1-pagina-indicator" style="display:none;font-size:10px;font-weight:600;color:#c00">
+          Documento composto por 2 (duas) páginas — PÁGINA 1 DE 2
+        </span>
+      </h1>
+    </div>
+
+    <!-- Logo empresa (direita) — ocultado por padrão, exibido por JS -->
+    
+  </div>
+
+  <!-- ══ SEÇÃO I — IDENTIFICAÇÃO ══ -->
+  <div class="form-section">
+    <div class="form-section-title">I — Identificação do Paciente</div>
+    <div class="fgrid c21" style="margin-bottom:10px">
+      <div class="fgroup" id="fg-nome">
+        <label class="flabel">Nome Completo <span class="req no-print-el">*</span></label>
+        <input class="finput" type="text" id="inp-nome" placeholder="Nome completo do paciente" oninput="clrErr('fg-nome');(function(e){if(e)e.textContent=document.getElementById('inp-nome').value})(document.getElementById('pn'))">
+      <div class="finput-print" id="pn"></div>
+      </div>
+      <div class="fgroup" id="fg-cpf">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+          <label class="flabel" id="cpf-label">CPF <span class="req no-print-el">*</span></label>
+          <div class="doc-toggle no-print-el">
+            <button type="button" class="doc-toggle-btn active" id="btn-cpf" onclick="setDocTipo('cpf')">CPF</button>
+            <button type="button" class="doc-toggle-btn" id="btn-pass" onclick="setDocTipo('pass')">Passaporte</button>
+          </div>
+        </div>
+        <input class="finput" type="text" id="cpf" maxlength="14" placeholder="000.000.000-00"
+               inputmode="numeric" autocomplete="off" oninput="onDocInput(this);(function(e){if(e)e.textContent=document.getElementById('cpf').value})(document.getElementById('pc'))">
+        <div class="finput-print" id="pc"></div>
+        <span id="cpf-aviso" style="display:none;font-size:9px;color:var(--sys-amber);font-weight:600;margin-top:2px">
+          ⚠ CPF incompleto — verifique antes de imprimir
+        </span>
+      </div>
+    </div>
+
+    <!-- CID-10 dinâmico -->
+    <div class="cid-area" id="cid-area" style="margin-bottom:10px">
+      <div class="cid-header">
+        <label class="flabel">CID-10 <span class="req no-print-el">*</span></label>
+        <button class="btn-add-cid no-print-el" onclick="adicionarCID()" id="btn-add-cid">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          + Adicionar outro CID
+        </button>
+      </div>
+      <!-- Banner de base offline -->
+      <div class="cid-offline-banner no-print-el" id="cid-offline-banner">
+        ⚠ Base de CID offline. Preenchimento manual permitido.
+      </div>
+      <div class="cid-list" id="cid-list"></div>
+      <div class="multipla-notice no-print-el" id="multipla-notice">
+        <strong>⚠ Deficiência Múltipla ativada automaticamente.</strong>
+        Você adicionou mais de um CID-10. É obrigatório marcar ao menos dois tipos de deficiência
+        com seus respectivos subtipos na Seção III. No campo Origem abaixo, agora é possível marcar
+        <strong>mais de uma opção</strong>.
+      </div>
+    </div>
+
+    <!-- Origem da deficiência -->
+    <div class="fgroup" id="fg-origem">
+      <label class="flabel" id="origem-label">
+        Origem da Deficiência <span class="req no-print-el">*</span>
+        <span class="hint no-print-el" id="origem-hint">(marque exatamente uma)</span>
+      </label>
+      <div class="check-row" id="cr-origem">
+        <label class="ci"><input type="radio" name="origem" onchange="clrErr('fg-origem')"> Congênita</label>
+        <label class="ci"><input type="radio" name="origem" onchange="clrErr('fg-origem')"> Acidente/Doença do Trabalho</label>
+        <label class="ci"><input type="radio" name="origem" onchange="clrErr('fg-origem')"> Acidente Comum</label>
+        <label class="ci"><input type="radio" name="origem" onchange="clrErr('fg-origem')"> Doença Comum</label>
+        <label class="ci"><input type="radio" name="origem" onchange="clrErr('fg-origem')"> Adquirida Pós-operatório</label>
+      </div>
+    </div>
+  </div><!-- /secao-I -->
+
+  <!-- ══ SEÇÃO II — DESCRIÇÃO CLÍNICA ══ -->
+  <div class="form-section">
+    <div class="form-section-title">II — Descrição Clínica</div>
+
+    <div class="fgroup" id="fg-imp" style="margin-bottom:10px">
+      <label class="flabel">Impedimentos nas Funções e Estruturas do Corpo <span class="req no-print-el">*</span></label>
+      <p style="font-size:10px;color:#777;margin-bottom:4px;font-style:italic">
+        Descrição detalhada dos impedimentos (alterações) nas funções e estruturas do corpo (física, auditiva, visual, intelectual e mental - psicossocial). Utilizar folhas adicionais, se necessário. Adicionar as informações e exames complementares solicitados abaixo para cada tipo de deficiência.
+      </p>
+      <div class="ta-wrap">
+        <div class="ta-divider" id="div-imp"></div>
+        <textarea class="ta-main" id="ta-imp" placeholder="Descreva os impedimentos…" oninput="onTaInput(this,'imp')"></textarea>
+        <div class="ta-print-page1" id="print-ta-imp"></div>
+        </div>
+      <div class="ta-footer no-print-el" id="ta-footer-imp">
+        <span class="ta-counter ok" id="cnt-imp">0 / 500 — Página 1</span>
+      </div>
+    </div>
+      <div class="secao2-separator no-print-el">
+        <div class="secao2-sep-line"></div>
+      </div>
+      <div class="secao2-separator-print">
+        <hr class="secao2-hr">
+      </div>
+
+    <div class="fgroup" id="fg-lim">
+      <label class="flabel">Limitações e Restrições de Participação Social <span class="req no-print-el">*</span></label>
+      <p style="font-size:10px;color:#777;margin-bottom:4px;font-style:italic">
+        Descrição das limitações no desempenho de atividades da vida diária e restrições de participação social, (informar se necessita de apoios – órteses, próteses, softwares, ajudas técnicas, cuidador etc.). Utilizar folhas adicionais, se necessário.
+      </p>
+      <div class="ta-wrap">
+        <div class="ta-divider" id="div-lim"></div>
+        <textarea class="ta-main" id="ta-lim" placeholder="Descreva as limitações…" oninput="onTaInput(this,'lim')"></textarea>
+        <div class="ta-print-page1" id="print-ta-lim"></div>
+        </div>
+      <div class="ta-footer no-print-el" id="ta-footer-lim">
+        <span class="ta-counter ok" id="cnt-lim">0 / 500 — Página 1</span>
+      </div>
+    </div>
+  </div><!-- /secao-II -->
+
+  <!-- ══ SEÇÃO III — ENQUADRAMENTO LEGAL ══ -->
+  <div class="form-section">
+    <div class="form-section-title">
+      III — Enquadramento Legal da Deficiência
+      <span class="no-print-el" style="font-size:8px;font-weight:400;text-transform:none;letter-spacing:0;color:#666">
+        (ao menos um tipo + subtipo obrigatório)
+      </span>
+    </div>
+    <div class="def-grid" id="def-grid">
+
+      <!-- I — FÍSICA -->
+      <div class="def-box" id="box-fisica">
+        <div class="def-box-title">
+          <input type="checkbox" id="cb-fisica"
+                 style="width:13px;height:13px;accent-color:#1a5276;flex-shrink:0;margin-top:1px"
+                 onchange="onPrinc(this,'box-fisica')">
+          I — Deficiência Física
+        </div>
+        <div class="def-box-desc">Alteração parcial/completa de segmento do corpo com comprometimento funcional:</div>
+        <div class="opt-grid">
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Paraplegia</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Paraparesia</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Monoplegia</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Monoparesia</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Tetraplegia</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Tetraparesia</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Triplegia</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Triparesia</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Hemiplegia</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Hemiparesia</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Ostomia</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Paralisia Cerebral</label>
+        </div>
+        <div class="opt-grid one" style="margin-top:3px">
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Deformidade Congênita ou Adquirida</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Amputação ou Ausência de Membros</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Nanismo (altura: <input type="text" style="width:40px;border:none;border-bottom:1px solid #aaa;font-size:10px;background:transparent;padding:0 2px"> cm)</label>
+          <label class="ci-sub dim" data-box="box-fisica"><input type="checkbox" class="cb-sub" data-parent="box-fisica" disabled onchange="clrErrBox('box-fisica')"> Outras: <input type="text" style="width:100px;border:none;border-bottom:1px solid #aaa;font-size:10px;background:transparent;padding:0 2px"></label>
+        </div>
+      </div>
+
+      <!-- II — AUDITIVA -->
+      <div class="def-box" id="box-auditiva">
+        <div class="def-box-title">
+          <input type="checkbox" id="cb-auditiva"
+                 style="width:13px;height:13px;accent-color:#1a5276;flex-shrink:0;margin-top:1px"
+                 onchange="onPrinc(this,'box-auditiva')">
+          II — Deficiência Auditiva
+        </div>
+        <label class="ci-sub dim" data-box="box-auditiva" style="display:flex;align-items:flex-start;margin-bottom:4px">
+          <input type="checkbox" class="cb-sub" data-parent="box-auditiva" disabled style="margin-top:2px" onchange="clrErrBox('box-auditiva')">
+          <span style="font-size:10.5px">Bilateral, Parcial ou Total – perda ≥ 41 dB aferida por audiograma nas frequências 500Hz, 1.000Hz, 2.000Hz e 3.000Hz.</span>
+        </label>
+        <label class="ci-sub dim" data-box="box-auditiva" style="display:flex;align-items:flex-start">
+          <input type="checkbox" class="cb-sub" data-parent="box-auditiva" disabled style="margin-top:2px" onchange="clrErrBox('box-auditiva')">
+          <span style="font-size:10.5px">Surdez Unilateral Total – perda ≥ 95 dB nas frequências 500Hz, 1.000Hz, 2.000Hz e 4.000Hz.</span>
+        </label>
+        <div class="obs-tag">Anexar audiograma</div>
+      </div>
+
+      <!-- III — VISUAL -->
+      <div class="def-box" id="box-visual">
+        <div class="def-box-title">
+          <input type="checkbox" id="cb-visual"
+                 style="width:13px;height:13px;accent-color:#1a5276;flex-shrink:0;margin-top:1px"
+                 onchange="onPrinc(this,'box-visual')">
+          III — Deficiência Visual
+        </div>
+        <label class="ci-sub dim" data-box="box-visual" style="display:flex;align-items:flex-start;margin-bottom:2px">
+          <input type="checkbox" class="cb-sub" data-parent="box-visual" disabled style="margin-top:2px" onchange="clrErrBox('box-visual')">
+          <span style="font-size:10.5px">Cegueira – acuidade visual ≤ 0,05 (20/400) no melhor olho.</span>
+        </label>
+        <label class="ci-sub dim" data-box="box-visual" style="display:flex;align-items:flex-start;margin-bottom:2px">
+          <input type="checkbox" class="cb-sub" data-parent="box-visual" disabled style="margin-top:2px" onchange="clrErrBox('box-visual')">
+          <span style="font-size:10.5px">Baixa Visão – entre 0,3 (20/60) e 0,05 (20/400) no melhor olho.</span>
+        </label>
+        <label class="ci-sub dim" data-box="box-visual" style="display:flex;align-items:flex-start;margin-bottom:2px">
+          <input type="checkbox" class="cb-sub" data-parent="box-visual" disabled style="margin-top:2px" onchange="clrErrBox('box-visual')">
+          <span style="font-size:10.5px">Campo visual ≤ 60° em ambos os olhos.</span>
+        </label>
+        <label class="ci-sub dim" data-box="box-visual" style="display:flex;align-items:flex-start">
+          <input type="checkbox" class="cb-sub" data-parent="box-visual" disabled style="margin-top:2px" onchange="clrErrBox('box-visual')">
+          <span style="font-size:10.5px">Visão Monocular – acuidade ≤ 0,05 no olho prejudicado.</span>
+        </label>
+        <div class="obs-tag">Anexar laudo oftalmológico com tabela de Snellen</div>
+      </div>
+
+      <!-- IV — INTELECTUAL -->
+      <div class="def-box" id="box-intelectual">
+        <div class="def-box-title">
+          <input type="checkbox" id="cb-intelectual"
+                 style="width:13px;height:13px;accent-color:#1a5276;flex-shrink:0;margin-top:1px"
+                 onchange="onPrinc(this,'box-intelectual')">
+          IV — Deficiência Intelectual
+        </div>
+        <div class="def-box-desc">Funcionamento intelectual significativamente inferior à média, com limitações em ≥ 2 habilidades adaptativas:</div>
+        <div class="opt-grid">
+          <label class="ci-sub dim" data-box="box-intelectual"><input type="checkbox" class="cb-sub" data-parent="box-intelectual" disabled onchange="clrErrBox('box-intelectual')"> Comunicação</label>
+          <label class="ci-sub dim" data-box="box-intelectual"><input type="checkbox" class="cb-sub" data-parent="box-intelectual" disabled onchange="clrErrBox('box-intelectual')"> Lazer</label>
+          <label class="ci-sub dim" data-box="box-intelectual"><input type="checkbox" class="cb-sub" data-parent="box-intelectual" disabled onchange="clrErrBox('box-intelectual')"> Cuidado Pessoal</label>
+          <label class="ci-sub dim" data-box="box-intelectual"><input type="checkbox" class="cb-sub" data-parent="box-intelectual" disabled onchange="clrErrBox('box-intelectual')"> Saúde e Segurança</label>
+          <label class="ci-sub dim" data-box="box-intelectual"><input type="checkbox" class="cb-sub" data-parent="box-intelectual" disabled onchange="clrErrBox('box-intelectual')"> Hab. Acadêmicas</label>
+          <label class="ci-sub dim" data-box="box-intelectual"><input type="checkbox" class="cb-sub" data-parent="box-intelectual" disabled onchange="clrErrBox('box-intelectual')"> Trabalho</label>
+          <label class="ci-sub dim" data-box="box-intelectual"><input type="checkbox" class="cb-sub" data-parent="box-intelectual" disabled onchange="clrErrBox('box-intelectual')"> Hab. Sociais</label>
+          <label class="ci-sub dim" data-box="box-intelectual"><input type="checkbox" class="cb-sub" data-parent="box-intelectual" disabled onchange="clrErrBox('box-intelectual')"> Rec. Comunitários</label>
+        </div>
+        <div class="obs-tag">Anexar laudo do especialista</div>
+      </div>
+
+      <!-- V — MÚLTIPLA -->
+      <div class="def-box" id="box-multipla">
+        <div class="def-box-title">
+          <input type="checkbox" id="cb-multipla"
+                 style="width:13px;height:13px;accent-color:#1a5276;flex-shrink:0;margin-top:1px"
+                 onchange="onMultipla(this)">
+          V — Deficiência Múltipla
+        </div>
+        <div class="def-box-desc" style="margin-top:3px">
+          Associação de duas ou mais deficiências. Ao marcar, obrigatoriamente assinale ao menos
+          dois tipos acima, cada um com ao menos um subtipo. Também é possível adicionar múltiplos
+          CIDs e origens.
+        </div>
+      </div>
+
+      <!-- IV-a — MENTAL / PSICOSSOCIAL -->
+      <div class="def-box" id="box-mental">
+        <div class="def-box-title">
+          <input type="checkbox" id="cb-mental"
+                 style="width:13px;height:13px;accent-color:#1a5276;flex-shrink:0;margin-top:1px"
+                 onchange="onPrinc(this,'box-mental')">
+          IV-a — Deficiência Mental – Psicossocial
+        </div>
+        <div class="def-box-desc">Convenção ONU — Esquizofrenia, transtornos psicóticos e outras limitações psicossociais.</div>
+        <div class="obs-tag" style="margin-bottom:4px">Anexar laudo do especialista</div>
+        <hr class="div-ln">
+        <label class="ci-sub dim" data-box="box-mental" style="font-weight:700;margin-bottom:2px">
+          <input type="checkbox" class="cb-sub" data-parent="box-mental" disabled onchange="clrErrBox('box-mental')">
+          Espectro Autista – Lei 12.764/2012
+        </label>
+        <div class="obs-tag" style="margin-bottom:4px">Anexar laudo do especialista</div>
+        <hr class="div-ln">
+        <label class="ci-sub dim" data-box="box-mental" style="font-weight:700">
+          <input type="checkbox" class="cb-sub" data-parent="box-mental" disabled onchange="clrErrBox('box-mental')">
+          Reabilitado do INSS
+        </label>
+        <div class="obs-tag">Anexar Certificado de Reabilitação Profissional</div>
+      </div>
+
+    </div><!-- /def-grid -->
+  </div><!-- /secao-III -->
+
+  <!-- CONCLUSÃO LEGAL -->
+  <div class="conclusion">
+    <strong>Conclusão:</strong> A pessoa está enquadrada nas definições do art. 2º da Lei nº 13.146/2015 (LBI);
+    arts. 3º e 4º do Decreto nº 3.298/1999 com alterações do Dec. 5.296/2004; art. 1º, §2º, da Lei nº 12.764/2012;
+    Lei 14.126/2021; Lei 14.768/2023; recomendações da IN 02/MTE/2021; OT SIT nº 16/2025;
+    e Convenção sobre Direitos das Pessoas com Deficiência, promulgada pelo Decreto nº 6.949/2009.
+  </div>
+
+  <!-- ══ ASSINATURAS ══ -->
+  <div class="sign-row">
+    <!-- Assinatura / Carimbo do Profissional -->
+    <div class="sign-box">
+      <!--
+        Label em 2 linhas compactas (metade superior da caixa)
+        → Linha de assinatura no centro
+        → Espaço inferior livre para carimbo físico
+      -->
+      <label class="flabel" style="font-size:9px;white-space:normal;line-height:1.3;max-width:100%">
+        Assinatura e Carimbo do Profissional<br>de Nível Superior da Área da Saúde / Especialidade
+      </label>
+      <div class="sign-line"></div>
+    </div>
+    <!-- Data de Emissão -->
+    <div class="sign-box" id="fg-data">
+      <label class="flabel" style="font-size:9px">Data de Emissão <span class="req no-print-el">*</span></label>
+      <div class="date-row no-print-el">
+        <input type="text" id="inp-data" placeholder="dd/mm/aaaa" maxlength="10"
+               inputmode="numeric" autocomplete="off"
+               oninput="onDataInput(this)" style="letter-spacing:.5px">
+        <button type="button" class="btn-hoje" onclick="setDataHoje()">Hoje</button>
+      </div>
+      <div class="date-display" id="data-display-p1"></div>
+      <div class="sign-line" style="margin-top:8px"></div>
+    </div>
+  </div>
+
+  <!-- ══ DECLARAÇÃO DO EMPREGADO ══ -->
+  <div class="bottom-row">
+    <div class="consent-box">
+      <strong style="font-size:8.5px;color:#1a5276;display:block;margin-bottom:2px">DECLARAÇÃO DO EMPREGADO</strong>
+      Estou ciente de que estou sendo enquadrado na cota de Pessoas com Deficiência / Reabilitados da empresa.
+      Autorizo a apresentação deste Laudo e exames à Auditoria Fiscal do Trabalho.
+    </div>
+    <div class="emp-sign-box">
+      <div class="sign-line"></div>
+      <span class="sign-label">Assinatura do Empregado</span>
+    </div>
+  </div>
+
+
+</div><!-- /doc-p1 -->
+
+<!-- ═══════════════════════════════════════════════════════════════
+     DOCUMENTO — PÁGINA 2 (overflow de texto)
+═══════════════════════════════════════════════════════════════ -->
+<div class="page2-card doc-card" id="doc-p2">
+  <div class="doc-header" id="doc-header-p2">
+    <div class="doc-header-logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 52" id="logo-brmed-svg-p2" style="height:36px;width:auto;display:block">
+  <text x="1" y="34" font-family="Arial Black,Arial,Helvetica,sans-serif" font-size="36" font-weight="900" fill="#000000" letter-spacing="-1">BR MED</text>
+  <rect x="1" y="38" width="218" height="1.2" fill="#000000" opacity="0.25"/>
+  <text x="2" y="49" font-family="Arial,Helvetica,sans-serif" font-size="8.5" font-weight="400" fill="#444444" letter-spacing="3.5">SAÚDE CORPORATIVA</text>
+</svg>
+      <span class="logo-sub" style="display:none">Saúde Corporativa</span>
+    </div>
+    <div class="doc-header-title">
+      <h1>LAUDO CARACTERIZADOR DE DEFICIÊNCIA<br>
+        <span style="font-size:10px;font-weight:400;color:#c00">
+          CONTINUAÇÃO — PÁGINA 2 DE 2 · Documento composto por 2 (duas) páginas
+        </span>
+      </h1>
+    </div>
+    
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-title">II — Descrição Clínica (Continuação)</div>
+
+    <div id="p2-imp-wrap" style="display:none;margin-bottom:10px">
+      <label class="flabel" style="margin-bottom:4px">
+        Impedimentos nas Funções e Estruturas do Corpo
+        <span style="font-size:9px;font-weight:600;color:#000">(continuação)</span>
+      </label>
+      <div style="border:1px solid #ccc;border-radius:3px;padding:6px 8px;font-size:11px;color:#222;line-height:1.45;min-height:36px;height:auto;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;background:#fafafa" id="p2-imp-text" class="p2-text-block"></div>
+    </div>
+
+    <div id="p2-lim-wrap" style="display:none">
+      <label class="flabel" style="margin-bottom:4px">
+        Limitações e Restrições de Participação Social
+        <span style="font-size:9px;font-weight:600;color:#000">(continuação)</span>
+      </label>
+      <div style="border:1px solid #ccc;border-radius:3px;padding:6px 8px;font-size:11px;color:#222;line-height:1.45;min-height:36px;height:auto;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;background:#fafafa" id="p2-lim-text" class="p2-text-block"></div>
+    </div>
+  </div>
+
+  <div class="sign-row">
+    <div class="sign-box">
+      <label class="flabel" style="font-size:9px;white-space:normal;line-height:1.3">
+        Assinatura e Carimbo do Profissional<br>de Nível Superior da Área da Saúde / Especialidade
+      </label>
+      <div class="sign-line"></div>
+    </div>
+    <div class="sign-box">
+      <label class="flabel" style="font-size:9px">Data de Emissão</label>
+      <div class="date-display" id="data-display-p2" style="display:block;font-size:12px;color:#222;padding:2px 0;border-bottom:1px solid #888;min-height:20px"></div>
+      <div class="sign-line" style="margin-top:8px"></div>
+    </div>
+  </div>
+  <div class="bottom-row">
+    <div class="consent-box">
+      <strong style="font-size:8.5px;color:#1a5276;display:block;margin-bottom:2px">DECLARAÇÃO DO EMPREGADO</strong>
+      Estou ciente de que estou sendo enquadrado na cota de Pessoas com Deficiência / Reabilitados da empresa.
+      Autorizo a apresentação deste Laudo e exames à Auditoria Fiscal do Trabalho.
+    </div>
+    <div class="emp-sign-box">
+      <div class="sign-line"></div>
+      <span class="sign-label">Assinatura do Empregado</span>
+    </div>
+  </div>
+</div><!-- /doc-p2 -->
+
+</div><!-- /page-wrap -->
+
+
+<script src="js/main.js"></script>
+</body>
+</html>
